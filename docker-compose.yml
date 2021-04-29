@@ -1,0 +1,99 @@
+version: '3.7'
+services:
+
+  service-registry-server:
+    image: service-registry
+    build:
+      context: Service_Registry
+      dockerfile: Dockerfile    
+    ports:
+      - "8761:8761"
+    restart: always
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry-server:8761/eureka
+      #AUDIT_BENCHMARK_URI: http://zuulserver:9090/api/AuditBenchMark
+    networks:
+      - service-registry-network
+  
+  loanmanagement-server:
+    image: loan-management
+    build:
+      context: LoanManagement
+      dockerfile: Dockerfile
+    ports:
+      - "9001:9001"
+    restart: always
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry-server:8761/eureka
+    depends_on:
+      - service-registry-server
+      - collateralmanagement-server
+    networks:
+      - service-registry-network
+  
+  collateralmanagement-server:
+    image: collateral-management
+    build:
+      context: collateralmanagement
+      dockerfile: Dockerfile
+    ports:
+      - "9002:9002"
+    restart: always
+    depends_on:
+      - service-registry-server
+    networks:
+      - service-registry-network 
+
+  CollateralLoan-RiskAssessment-server:
+    image: collateralloan-riskassessment
+    build:
+      context: CollateralLoan-RiskAssessment
+      dockerfile: Dockerfile    
+    ports:
+      - "9003:9003"
+    restart: always
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry-server:8761/eureka
+    depends_on:
+      - service-registry-server
+      - collateralmanagement-server
+    networks:
+      - service-registry-network
+
+  authentication-service-server:
+    image: authentication-service
+    build:
+      context: authentication-service
+      dockerfile: Dockerfile    
+    ports:
+      - "9004:9004"
+    restart: always
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry-server:8761/eureka
+      #AUDIT_BENCHMARK_URI: http://zuulserver:9090/api/AuditBenchMark
+    depends_on:
+      - service-registry-server
+      - collateralmanagement-server
+    networks:
+      - service-registry-network
+    
+  zuul-api-gateway-server:
+    image: zuul-api-gateway
+    build:
+      context: zuul-api-gateway
+      dockerfile: Dockerfile
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry-server:8761/eureka
+    ports:
+      - "9191:9191"
+    restart: always
+    depends_on:
+      - service-registry-server
+      - collateralmanagement-server
+    networks:
+      - service-registry-network   
+      
+  
+# Networks to be created to facilitate communication between containers
+networks:
+  service-registry-network:
