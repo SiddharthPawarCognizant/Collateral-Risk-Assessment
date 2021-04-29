@@ -1,0 +1,21 @@
+# Service will be mapped under the /api URI
+zuul:
+
+# Uncomment to disable auto-registering all services read from Eureka
+ ignoredServices: '*'
+ routes:
+  test:
+   path: /redirect
+   url: http://google.com
+  Loan-Management:
+   path: /loan/**
+   serviceId: Loan-Management
+  Risk-Assessment:
+   path: /risk/**
+   serviceId: Risk-Assessment
+  authentication-service:
+   path: /authentication-service/**
+   serviceId: authentication-service
+
+
+
