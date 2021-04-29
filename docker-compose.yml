@@ -39,6 +39,8 @@ services:
     ports:
       - "9002:9002"
     restart: always
+    environment:
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://service-registry-server:8761/eureka
     depends_on:
       - service-registry-server
     networks:
